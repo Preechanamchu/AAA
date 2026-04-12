@@ -380,7 +380,11 @@ const handler = async (event, context) => {
               line: row.contact_line,
               facebook: row.contact_facebook,
               phone: row.contact_phone
-            }
+            },
+            approvedAt: row.approved_at,
+            approved_at: row.approved_at,
+            rejectedAt: row.rejected_at,
+            rejected_at: row.rejected_at
           }));
 
           const pendingRegistrations = allRegistrations.filter(s => ['pending', 'rejected'].includes(s.status));
@@ -458,7 +462,7 @@ const handler = async (event, context) => {
         try {
           // Update store_registrations table (table ที่ signup.js ใช้)
           const result = await client.query(
-            "UPDATE store_registrations SET status = 'approved', package_type = $1 WHERE id = $2 RETURNING id",
+            "UPDATE store_registrations SET status = 'approved', package_type = $1, approved_at = NOW() WHERE id = $2 RETURNING id",
             [packageType || 'standard', storeId]
           );
 
@@ -481,7 +485,7 @@ const handler = async (event, context) => {
         try {
           // Update store_registrations table
           const result = await client.query(
-            "UPDATE store_registrations SET status = 'rejected' WHERE id = $1 RETURNING id",
+            "UPDATE store_registrations SET status = 'rejected', rejected_at = NOW() WHERE id = $1 RETURNING id",
             [storeId]
           );
 
