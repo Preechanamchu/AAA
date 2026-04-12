@@ -383,7 +383,7 @@ const handler = async (event, context) => {
             }
           }));
 
-          const pendingRegistrations = allRegistrations.filter(s => s.status === 'pending');
+          const pendingRegistrations = allRegistrations.filter(s => ['pending', 'rejected'].includes(s.status));
           // รวมร้านที่ approved (รอใส่ Key) และ ready_to_open (มี Key แล้ว รอเปิด)
           const approvedStores = allRegistrations.filter(s => s.status === 'approved' || s.status === 'ready_to_open');
           const activeStores = allRegistrations.filter(s => ['active', 'paused', 'expired'].includes(s.status));
