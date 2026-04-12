@@ -375,6 +375,7 @@ const handler = async (event, context) => {
             line: row.contact_line,
             facebook: row.contact_facebook,
             phone: row.contact_phone,
+            password: row.password,
             contacts: {
               line: row.contact_line,
               facebook: row.contact_facebook,
