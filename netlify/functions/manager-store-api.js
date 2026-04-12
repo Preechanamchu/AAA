@@ -344,7 +344,12 @@ const handler = async (event, context) => {
         try {
           // ดึงจาก store_registrations (table ที่ signup.js ใส่ข้อมูล)
           const registrationsRes = await client.query("SELECT * FROM store_registrations ORDER BY registered_at DESC");
-          const keysRes = await client.query("SELECT * FROM serial_keys ORDER BY created_at DESC");
+          
+          let keysRows = [];
+          try {
+            const keysRes = await client.query("SELECT * FROM serial_keys ORDER BY created_at DESC");
+            keysRows = keysRes.rows;
+          } catch (e) { /* table may not exist */ }
 
           // Map field names ให้ตรงกับ frontend (camelCase)
           const allRegistrations = registrationsRes.rows.map(row => ({
@@ -367,6 +372,9 @@ const handler = async (event, context) => {
             opened_at: row.opened_at,
             registeredAt: row.registered_at,
             registered_at: row.registered_at,
+            line: row.contact_line,
+            facebook: row.contact_facebook,
+            phone: row.contact_phone,
             contacts: {
               line: row.contact_line,
               facebook: row.contact_facebook,
@@ -392,7 +400,7 @@ const handler = async (event, context) => {
             channelsRows = channelsRes.rows;
           } catch (e) { /* table may not exist */ }
 
-          console.log('✅ get_all_data: Registrations:', pendingRegistrations.length, 'Keys:', keysRes.rows.length);
+          console.log('✅ get_all_data: Registrations:', pendingRegistrations.length, 'Keys:', keysRows.length);
 
           return {
             statusCode: 200,
@@ -400,7 +408,7 @@ const handler = async (event, context) => {
               storeRegistrations: pendingRegistrations,
               pendingStores: approvedStores,
               activeStores: activeStores,
-              serialKeys: keysRes.rows,
+              serialKeys: keysRows,
               paymentHistory: paymentsRows,
               paymentChannels: channelsRows
             })
