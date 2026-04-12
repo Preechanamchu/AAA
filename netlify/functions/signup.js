@@ -44,11 +44,7 @@ exports.handler = async (event, context) => {
                 shop_link TEXT,
                 owner_name TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
-                package_type TEXT,
                 status TEXT DEFAULT 'pending',
-                serial_key TEXT,
-                expiry_date TIMESTAMPTZ,
-                opened_at TIMESTAMPTZ,
                 registered_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
                 contact_line TEXT,
                 contact_facebook TEXT,
@@ -59,8 +55,8 @@ exports.handler = async (event, context) => {
             // 2. Insert ข้อมูลลงตาราง
             const query = `
             INSERT INTO store_registrations 
-            (shop_name, shop_age, shop_link, owner_name, password, package_type, status, registered_at, contact_line, contact_facebook, contact_phone)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            (shop_name, shop_age, shop_link, owner_name, password, status, registered_at, contact_line, contact_facebook, contact_phone)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING *
         `;
 
@@ -70,7 +66,6 @@ exports.handler = async (event, context) => {
                 shopLink,
                 username,
                 password, // หมายเหตุ: ในระบบจริงควร Hash Password ก่อนบันทึก
-                packageType,
                 status || 'pending',
                 registeredAt || new Date().toISOString(),
                 contacts?.line || '',
