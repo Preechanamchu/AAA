@@ -455,25 +455,47 @@ const handler = async (event, context) => {
       // 2. อนุมัติร้านค้า (ส่งไปรอใส่ Serial Key)
       if (action === 'approve_store') {
         const { storeId, packageType } = data;
-        // Update store_registrations table (table ที่ signup.js ใช้)
-        await client.query(
-          "UPDATE store_registrations SET status = 'approved', package_type = $1 WHERE id = $2",
-          [packageType || 'standard', storeId]
-        );
-        console.log('✅ Store approved:', storeId, 'Package:', packageType);
-        return { statusCode: 200, body: JSON.stringify({ message: 'Store approved', storeId }) };
+        try {
+          // Update store_registrations table (table ที่ signup.js ใช้)
+          const result = await client.query(
+            "UPDATE store_registrations SET status = 'approved', package_type = $1 WHERE id = $2 RETURNING id",
+            [packageType || 'standard', storeId]
+          );
+
+          if (result.rows.length === 0) {
+            console.error('❌ Store not found for approval:', storeId);
+            return { statusCode: 404, body: JSON.stringify({ error: 'ไม่พบข้อมูลร้านค้าที่จะอนุมัติ' }) };
+          }
+
+          console.log('✅ Store approved:', storeId, 'Package:', packageType);
+          return { statusCode: 200, body: JSON.stringify({ message: 'Store approved', storeId }) };
+        } catch (err) {
+          console.error('❌ Error approving store:', err.message);
+          return { statusCode: 500, body: JSON.stringify({ error: 'เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล', details: err.message }) };
+        }
       }
 
       // 3. ปฏิเสธร้านค้า (ส่งไปประวัติ)
       if (action === 'reject_store') {
         const { storeId } = data;
-        // Update store_registrations table
-        await client.query(
-          "UPDATE store_registrations SET status = 'rejected' WHERE id = $1",
-          [storeId]
-        );
-        console.log('❌ Store rejected:', storeId);
-        return { statusCode: 200, body: JSON.stringify({ message: 'Store rejected', storeId }) };
+        try {
+          // Update store_registrations table
+          const result = await client.query(
+            "UPDATE store_registrations SET status = 'rejected' WHERE id = $1 RETURNING id",
+            [storeId]
+          );
+
+          if (result.rows.length === 0) {
+            console.error('❌ Store not found for rejection:', storeId);
+            return { statusCode: 404, body: JSON.stringify({ error: 'ไม่พบข้อมูลร้านค้าที่จะปฏิเสธ' }) };
+          }
+
+          console.log('❌ Store rejected:', storeId);
+          return { statusCode: 200, body: JSON.stringify({ message: 'Store rejected', storeId }) };
+        } catch (err) {
+          console.error('❌ Error rejecting store:', err.message);
+          return { statusCode: 500, body: JSON.stringify({ error: 'เกิดข้อผิดพลาดในการอัปเดตฐานข้อมูล', details: err.message }) };
+        }
       }
 
       // 4. เปิดร้านค้าใหม่
